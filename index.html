@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Age Calculator — Real Time + Celebrity Carousel</title>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- AOS for subtle entrance animations -->
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+<!-- Feather icons -->
+<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2708832535381203"
+crossorigin="anonymous"></script>
+
+<style>
+/* small custom styles */
+.celebrity-card { min-width: 260px; max-width: 260px; }
+.carousel-scroll { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+.ad-fade { transition: opacity .6s ease; opacity: 1; }
+.ad-hidden { opacity: 0; }
+.carousel-arrow { width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; }
+.age-small { font-size: .95rem; }
+
+/* Ad container styles */
+.ad-container {
+width: 100%;
+margin: 15px 0;
+text-align: center;
+}
+
+.ad-banner {
+display: inline-block;
+width: 100%;
+max-width: 728px;
+height: 90px;
+background-color: #1e1e1e;
+border: 1px solid #333;
+border-radius: 4px;
+margin: 10px 0;
+overflow: hidden;
+position: relative;
+}
+
+.ad-label {
+position: absolute;
+top: 2px;
+right: 2px;
+background-color: rgba(0, 0, 0, 0.7);
+color: #aaa;
+font-size: 0.7rem;
+padding: 2px 4px;
+border-radius: 2px;
+z-index: 1;
+}
+
+.ad-content {
+width: 100%;
+height: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+color: #888;
+font-size: 0.9rem;
+}
+
+.ad-square {
+width: 300px;
+height: 250px;
+}
+
+/* small responsive tweak */
+@media (max-width: 768px) {
+.celebrity-card { min-width: 220px; max-width: 220px; }
+.ad-banner {
+height: 50px;
+}
+.ad-square {
+width: 100%;
+max-width: 300px;
+height: 250px;
+}
+}
+</style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<!-- HEADER -->
+<header class="bg-white shadow-sm">
+<div class="container mx-auto px-4 py-5 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<i data-feather="calendar" class="text-blue-600"></i>
+<h1 class="text-2xl font-bold">Age Calculator</h1>
+</div>
+<nav class="hidden md:flex gap-6 text-sm">
+<a href="#calculator" class="text-blue-600">Calculator</a>
+<a href="#celebs" class="hover:text-blue-600">Celebrities</a>
+<a href="#about" class="hover:text-blue-600">About</a>
+</nav>
+</div>
+</header>
+
+<!-- TOP banner ad -->
+<div class="ad-container">
+<div class="ad-banner">
+<div class="ad-label">Ad</div>
+<div id="ad-top" class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="4330270745"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+</div>
+
+<!-- MAIN -->
+<main class="container mx-auto px-4 py-8">
+
+<!-- CALCULATOR -->
+<section id="calculator" class="bg-white rounded-xl shadow-md p-6 mb-8" data-aos="fade-up">
+<div class="grid md:grid-cols-2 gap-8">
+<div>
+<h2 class="text-xl font-semibold mb-4">Enter your details</h2>
+<form id="ageForm" class="space-y-4">
+<div>
+<label class="block text-sm font-medium mb-1">Date of Birth</label>
+<input id="birthDate" type="date" class="w-full border rounded-md px-3 py-2" required />
+</div>
+<div>
+<label class="block text-sm font-medium mb-1">Calculate age at (optional)</label>
+<input id="targetDate" type="date" class="w-full border rounded-md px-3 py-2" />
+<p class="text-xs text-gray-500 mt-1">Leave blank to use current date/time</p>
+</div>
+<div>
+<label class="block text-sm font-medium mb-1">Display format</label>
+<div class="flex gap-2">
+<button id="formatTraditional" type="button" class="px-3 py-1 rounded bg-blue-600 text-white text-sm">Traditional</button>
+<button id="formatDays" type="button" class="px-3 py-1 rounded bg-gray-200 text-gray-700 text-sm">Total Days</button>
+<button id="formatHours" type="button" class="px-3 py-1 rounded bg-gray-200 text-gray-700 text-sm">Hours & Minutes</button>
+</div>
+</div>
+<button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md mt-2">Calculate Age</button>
+</form>
+</div>
+
+<div>
+<h2 class="text-xl font-semibold mb-4">Your age</h2>
+<div class="bg-gray-50 rounded-lg p-4 min-h-[200px] flex items-center justify-center">
+<div id="ageResults" class="text-center text-gray-700">
+<div class="text-gray-400"><i data-feather="clock"></i></div>
+<p class="mt-2">Enter a birth date to see your age</p>
+</div>
+</div>
+<div class="mt-4 text-sm text-gray-500">
+<div id="timezoneDisplay">Detecting timezone...</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- MIDDLE square ad -->
+<div class="ad-container">
+<div class="ad-banner ad-square">
+<div class="ad-label">Ad</div>
+<div id="ad-middle" class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="6603449987"
+data-ad-format="rectangle"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+</div>
+
+<!-- CELEBRITY CAROUSEL -->
+<section id="celebs" class="mb-10" data-aos="fade-up">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-2xl font-bold">Famous People (live ages)</h2>
+<div class="flex items-center gap-2">
+<button onclick="scrollCelebs(-360)" class="carousel-arrow bg-white rounded-full shadow"><span>&lt;</span></button>
+<button onclick="scrollCelebs(360)" class="carousel-arrow bg-white rounded-full shadow"><span>&gt;</span></button>
+</div>
+</div>
+
+<div id="celebrityCarousel" class="flex overflow-x-auto carousel-scroll gap-4 pb-4">
+<!-- 20 celebrity cards (image URLs are optional placeholders) -->
+<!-- Card 1 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/cKCh0ndy/ELON.jpg" alt="Elon Musk" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Elon Musk</h3>
+<p class="text-xs text-gray-500">Born: Jun 28, 1971</p>
+<p id="elonAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 2 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/ccnxDhrt/Tailor.jpg" alt="Taylor Swift" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Taylor Swift</h3>
+<p class="text-xs text-gray-500">Born: Dec 13, 1989</p>
+<p id="taylorAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 3 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<img src="https://upload.wikimedia.org/wikipedia/commons/8/8c/Cristiano_Ronaldo_2018.jpg" alt="Cristiano Ronaldo" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Cristiano Ronaldo</h3>
+<p class="text-xs text-gray-500">Born: Feb 5, 1985</p>
+<p id="ronaldoAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 4 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/NgJ4Jw7K/Lionel.jpg" alt="Lionel Messi" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Lionel Messi</h3>
+<p class="text-xs text-gray-500">Born: Jun 24, 1987</p>
+<p id="messiAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 5 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/gMGHmxbB/Oprah.jpg" alt="Oprah Winfrey" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Oprah Winfrey</h3>
+<p class="text-xs text-gray-500">Born: Jan 29, 1954</p>
+<p id="oprahAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 6 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/84S5Bmc3/Barack.jpg" alt="Barack Obama" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Barack Obama</h3>
+<p class="text-xs text-gray-500">Born: Aug 4, 1961</p>
+<p id="obamaAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 7 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<img src="https://upload.wikimedia.org/wikipedia/commons/5/56/Donald_Trump_official_portrait.jpg" alt="Donald Trump" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Donald Trump</h3>
+<p class="text-xs text-gray-500">Born: Jun 14, 1946</p>
+<p id="trumpAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 8 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<img src="https://upload.wikimedia.org/wikipedia/commons/a/a0/Bill_Gates_2018.jpg" alt="Bill Gates" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Bill Gates</h3>
+<p class="text-xs text-gray-500">Born: Oct 28, 1955</p>
+<p id="gatesAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 9 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/S7w3DwFp/mark.jpg" alt="Mark Zuckerberg" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Mark Zuckerberg</h3>
+<p class="text-xs text-gray-500">Born: May 14, 1984</p>
+<p id="zuckAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 10 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/WWdxdX06/Pezos.jpg" alt="Jeff Bezos" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Jeff Bezos</h3>
+<p class="text-xs text-gray-500">Born: Jan 12, 1964</p>
+<p id="bezosAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 11 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/5XcYT34H/Selena.jpg" alt="Selena Gomez" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Selena Gomez</h3>
+<p class="text-xs text-gray-500">Born: Jul 22, 1992</p>
+<p id="selenaAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 12 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/bMS9PYRQ/Ariana-Grande.jpg" alt="Ariana Grande" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Ariana Grande</h3>
+<p class="text-xs text-gray-500">Born: Jun 26, 1993</p>
+<p id="arianaAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 13 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/vxH7bK5z/Drake.jpg" alt="Drake" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Drake</h3>
+<p class="text-xs text-gray-500">Born: Oct 24, 1986</p>
+<p id="drakeAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 14 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/XkDvfJgq/Rihanna.jpg" alt="Rihanna" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Rihanna</h3>
+<p class="text-xs text-gray-500">Born: Feb 20, 1988</p>
+<p id="rihannaAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 15 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/YBG3mhX8/Beyonc.jpg" alt="Beyoncé" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Beyoncé</h3>
+<p class="text-xs text-gray-500">Born: Sep 4, 1981</p>
+<p id="beyonceAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 16 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/m5wR4Gbf/Le-Bron-James.jpg" alt="LeBron James" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">LeBron James</h3>
+<p class="text-xs text-gray-500">Born: Dec 30, 1984</p>
+<p id="lebronAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 17 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/8LsmKxnW/Dwayne-Johnson.jpg" alt="Dwayne Johnson" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Dwayne Johnson</h3>
+<p class="text-xs text-gray-500">Born: May 2, 1972</p>
+<p id="rockAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 18 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/ZzL5Ws8b/Justin-Bieber.jpg" alt="Justin Bieber" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Justin Bieber</h3>
+<p class="text-xs text-gray-500">Born: Mar 1, 1994</p>
+<p id="justinAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 19 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/gbddX5Dk/Kanye-West.jpg" alt="Kanye West" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Kanye West</h3>
+<p class="text-xs text-gray-500">Born: Jun 8, 1977</p>
+<p id="kanyeAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+
+<!-- Card 20 -->
+<div class="celebrity-card bg-white rounded-xl p-4 shadow flex-shrink-0 text-center">
+<a href="https://imgbb.com/"><img src="https://i.ibb.co/gx44gKh/Kim-Kardashian.jpg" alt="Kim Kardashian" class="w-20 h-20 rounded-full mx-auto object-cover mb-3">
+<h3 class="font-semibold">Kim Kardashian</h3>
+<p class="text-xs text-gray-500">Born: Oct 21, 1980</p>
+<p id="kimAge" class="mt-2 age-small text-blue-600">—</p>
+</div>
+</div>
+</section>
+
+<!-- FOOTER banner ad -->
+<div class="ad-container">
+<div class="ad-banner">
+<div class="ad-label">Ad</div>
+<div id="ad-footer" class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="6709022070"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+</div>
+
+<!-- ABOUT -->
+<section id="about" class="bg-white rounded-xl shadow-md p-6 mb-12" data-aos="fade-up">
+<h3 class="text-lg font-semibold mb-2">About</h3>
+<p class="text-gray-600 text-sm">Accurate live age calculations, rotating ad slots, and a responsive celebrity carousel. Replace AdSense slot IDs as needed.</p>
+</section>
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-gray-800 text-white py-8">
+<div class="container mx-auto text-center text-sm">&copy; <span id="yearNow"></span> Age Calculator. All rights reserved.</div>
+</footer>
+
+<!-- Ad grid -->
+<div class="ad-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; margin: 30px auto;">
+<div class="ad-banner">
+<div class="ad-label">Ad</div>
+<div class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="6962542631"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+<div class="ad-banner ad-square">
+<div class="ad-label">Ad</div>
+<div class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="6170552754"
+data-ad-format="rectangle"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+<div class="ad-banner">
+<div class="ad-label">Ad</div>
+<div class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="8902310269"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+<div class="ad-banner ad-square">
+<div class="ad-label">Ad</div>
+<div class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="5978981067"
+data-ad-format="rectangle"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+<div class="ad-banner">
+<div class="ad-label">Ad</div>
+<div class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="5204368716"
+data-ad-format="auto"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+<div class="ad-banner ad-square">
+<div class="ad-label">Ad</div>
+<div class="ad-content">
+<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="1265123705"
+data-ad-format="rectangle"
+data-full-width-responsive="true"></ins>
+</div>
+</div>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+// Init libs
+AOS.init({ duration: 700, once: true });
+feather.replace();
+document.getElementById('yearNow').textContent = new Date().getFullYear();
+
+// ---------- Timezone display ----------
+(function showTimezone() {
+try {
+const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const offset = -new Date().getTimezoneOffset() / 60;
+document.getElementById('timezoneDisplay').textContent = `${tz} (UTC${offset >= 0 ? '+' : ''}${offset})`;
+} catch (e) {
+document.getElementById('timezoneDisplay').textContent = 'UTC';
+}
+})();
+
+// ---------- Age calculation helpers ----------
+function calculateDetailedAgeFromDates(birthDate, refDate) {
+// returns object: years, months, days, hours, minutes
+// We'll compute using naive calendar-like approach for human readable age
+const b = new Date(birthDate); // birth
+const r = new Date(refDate); // reference (now or target)
+if (isNaN(b)) return null;
+
+let years = r.getFullYear() - b.getFullYear();
+let months = r.getMonth() - b.getMonth();
+let days = r.getDate() - b.getDate();
+let hours = r.getHours() - b.getHours();
+let minutes = r.getMinutes() - b.getMinutes();
+let seconds = r.getSeconds() - b.getSeconds();
+
+if (seconds < 0) { seconds += 60; minutes -= 1; }
+if (minutes < 0) { minutes += 60; hours -= 1; }
+if (hours < 0) { hours += 24; days -= 1; }
+
+if (days < 0) {
+// borrow days from previous month
+const prevMonth = new Date(r.getFullYear(), r.getMonth(), 0);
+days += prevMonth.getDate();
+months -= 1;
+}
+if (months < 0) { months += 12; years -= 1; }
+
+return { years, months, days, hours, minutes, seconds };
+}
+
+function humanAgeString(ageObj) {
+if (!ageObj) return '—';
+// show years, months, days, hours, minutes
+return `${ageObj.years}y ${ageObj.months}m ${ageObj.days}d · ${ageObj.hours}h ${ageObj.minutes}m`;
+}
+
+// ---------- Personal calculator logic ----------
+let birthDateValue = null;
+let calcInterval = null;
+let currentFormat = 'traditional'; // 'traditional' | 'days' | 'hours'
+
+// Get DOMs
+const ageForm = document.getElementById('ageForm');
+const ageResults = document.getElementById('ageResults');
+const btnTraditional = document.getElementById('formatTraditional');
+const btnDays = document.getElementById('formatDays');
+const btnHours = document.getElementById('formatHours');
+
+// Format buttons helper
+function setFormatBtnActive(activeBtn) {
+[btnTraditional, btnDays, btnHours].forEach(b => {
+b.classList.remove('bg-blue-600', 'text-white');
+b.classList.add('bg-gray-200', 'text-gray-700');
+});
+activeBtn.classList.remove('bg-gray-200', 'text-gray-700');
+activeBtn.classList.add('bg-blue-600', 'text-white');
+}
+setFormatBtnActive(btnTraditional);
+
+btnTraditional.addEventListener('click', () => { currentFormat = 'traditional'; setFormatBtnActive(btnTraditional); if (birthDateValue) startCalcInterval(); });
+btnDays.addEventListener('click', () => { currentFormat = 'days'; setFormatBtnActive(btnDays); if (birthDateValue) startCalcInterval(); });
+btnHours.addEventListener('click', () => { currentFormat = 'hours'; setFormatBtnActive(btnHours); if (birthDateValue) startCalcInterval(); });
+
+ageForm.addEventListener('submit', function (e) {
+e.preventDefault();
+const bd = document.getElementById('birthDate').value;
+const td = document.getElementById('targetDate').value;
+if (!bd) { alert('Please enter your birth date'); return; }
+birthDateValue = new Date(bd);
+// if target date provided, compute once to that target
+if (td) {
+const target = new Date(td);
+updateCalculatorDisplay(birthDateValue, target, currentFormat);
+if (calcInterval) { clearInterval(calcInterval); calcInterval = null; }
+} else {
+startCalcInterval();
+}
+// Show results area if hidden
+document.getElementById('results')?.classList.remove('hidden');
+});
+
+function updateCalculatorDisplay(birthDate, refDate, format) {
+const ageObj = calculateDetailedAgeFromDates(birthDate, refDate);
+if (!ageObj) { ageResults.innerHTML = '<p>Invalid date</p>'; return; }
+if (format === 'traditional') {
+ageResults.innerHTML = `
+<div>
+<div class="text-4xl font-bold text-blue-600">${ageObj.years}</div>
+<div class="text-sm text-gray-500">years</div>
+<div class="grid grid-cols-3 gap-2 mt-4 text-center">
+<div><div class="text-xl font-semibold">${ageObj.months}</div><div class="text-xs text-gray-500">months</div></div>
+<div><div class="text-xl font-semibold">${ageObj.days}</div><div class="text-xs text-gray-500">days</div></div>
+<div><div class="text-xl font-semibold">${ageObj.hours}</div><div class="text-xs text-gray-500">hours</div></div>
+</div>
+<div class="mt-3 text-sm text-gray-500">Born on ${birthDate.toLocaleString()}</div>
+</div>`;
+} else if (format === 'days') {
+// total days between dates
+const totalDays = Math.floor((refDate - birthDate) / (1000 * 60 * 60 * 24));
+ageResults.innerHTML = `<div><div class="text-4xl font-bold text-green-600">${totalDays.toLocaleString()}</div><div class="text-sm text-gray-500">days</div></div>`;
+} else { // hours
+const totalHours = Math.floor((refDate - birthDate) / (1000 * 60 * 60));
+const totalMinutes = Math.floor((refDate - birthDate) / (1000 * 60));
+ageResults.innerHTML = `<div><div class="text-4xl font-bold text-purple-600">${totalHours.toLocaleString()}</div><div class="text-sm text-gray-500">hours (~${totalMinutes.toLocaleString()} minutes)</div></div>`;
+}
+}
+
+function startCalcInterval() {
+if (!birthDateValue) return;
+if (calcInterval) clearInterval(calcInterval);
+// update every second if format = hours, otherwise every 60s
+const tick = () => {
+const now = new Date();
+updateCalculatorDisplay(birthDateValue, now, currentFormat);
+};
+tick();
+const ms = currentFormat === 'hours' ? 1000 : 60000;
+calcInterval = setInterval(tick, ms);
+}
+
+// ---------- Celebrity carousel & live ages ----------
+const celebrities = [
+{ id: 'elonAge', name: 'Elon Musk', dob: '1971-06-28T00:00:00' },
+{ id: 'taylorAge', name: 'Taylor Swift', dob: '1989-12-13T00:00:00' },
+{ id: 'ronaldoAge', name: 'Cristiano Ronaldo', dob: '1985-02-05T00:00:00' },
+{ id: 'messiAge', name: 'Lionel Messi', dob: '1987-06-24T00:00:00' },
+{ id: 'oprahAge', name: 'Oprah Winfrey', dob: '1954-01-29T00:00:00' },
+{ id: 'obamaAge', name: 'Barack Obama', dob: '1961-08-04T00:00:00' },
+{ id: 'trumpAge', name: 'Donald Trump', dob: '1946-06-14T00:00:00' },
+{ id: 'gatesAge', name: 'Bill Gates', dob: '1955-10-28T00:00:00' },
+{ id: 'zuckAge', name: 'Mark Zuckerberg', dob: '1984-05-14T00:00:00' },
+{ id: 'bezosAge', name: 'Jeff Bezos', dob: '1964-01-12T00:00:00' },
+{ id: 'selenaAge', name: 'Selena Gomez', dob: '1992-07-22T00:00:00' },
+{ id: 'arianaAge', name: 'Ariana Grande', dob: '1993-06-26T00:00:00' },
+{ id: 'drakeAge', name: 'Drake', dob: '1986-10-24T00:00:00' },
+{ id: 'rihannaAge', name: 'Rihanna', dob: '1988-02-20T00:00:00' },
+{ id: 'beyonceAge', name: 'Beyoncé', dob: '1981-09-04T00:00:00' },
+{ id: 'lebronAge', name: 'LeBron James', dob: '1984-12-30T00:00:00' },
+{ id: 'rockAge', name: 'Dwayne Johnson', dob: '732-05-02T00:00:00' },
+{ id: 'justinAge', name: 'Justin Bieber', dob: '1994-03-01T00:00:00' },
+{ id: 'kanyeAge', name: 'Kanye West', dob: '1977-06-08T00:00:00' },
+{ id: 'kimAge', name: 'Kim Kardashian', dob: '1980-10-21T00:00:00' }
+];
+
+function updateAllCelebrityAges() {
+const now = new Date();
+celebrities.forEach(c => {
+const el = document.getElementById(c.id);
+if (!el) return;
+const ageObj = calculateDetailedAgeFromDates(new Date(c.dob), now);
+el.textContent = humanAgeString(ageObj);
+});
+}
+// Update initially and every minute (minutes resolution)
+updateAllCelebrityAges();
+setInterval(updateAllCelebrityAges, 60000);
+
+// helper for carousel arrows
+function scrollCelebs(offset) {
+const container = document.getElementById('celebrityCarousel');
+container.scrollBy({ left: offset, behavior: 'smooth' });
+}
+
+// ---------- AdSense Integration ----------
+// Initialize all ads
+window.addEventListener('load', function() {
+// Push all ads to Google
+(adsbygoogle = window.adsbygoogle || []).push({});
+
+// Auto-refresh ads every 60 seconds
+setInterval(function() {
+// Get all ad units
+const adUnits = document.querySelectorAll('.adsbygoogle');
+
+// Refresh each ad
+adUnits.forEach(function(adUnit) {
+(adsbygoogle = window.adsbygoogle || []).push({});
+});
+}, 60000);
+});
+
+// ---------- Rotating Ads: top, middle, footer ----------
+// Replace the ad slot strings below with your real ad slot IDs.
+const adSets = {
+top: ['4330270745', '6962542631', '5978981067'],
+middle: ['6603449987', '6170552754', '5204368716'],
+footer: ['6709022070', '8902310269', '1265123705']
+};
+
+function buildAdMarkup(slotId) {
+return `<ins class="adsbygoogle"
+style="display:block"
+data-ad-client="ca-pub-2708832535381203"
+data-ad-slot="${slotId}"
+data-ad-format="auto"
+data-full-width-responsive="true"
+loading="lazy"></ins>`;
+}
+
+function rotateAdSection(sectionId, slotArray, rotateMs = 20000) {
+let i = 0;
+const container = document.getElementById(sectionId);
+if (!container || !slotArray || slotArray.length === 0) return;
+
+// initial load + interval
+function show() {
+// fade-out, replace content, fade-in
+container.classList.add('ad-hidden');
+setTimeout(() => {
+container.innerHTML = buildAdMarkup(slotArray[i]);
+try {
+(adsbygoogle = window.adsbygoogle || []).push({});
+} catch(e) {
+/* ignore */
+}
+container.classList.remove('ad-hidden');
+i = (i + 1) % slotArray.length;
+}, 450);
+}
+show();
+return setInterval(show, rotateMs);
+}
+
+// start rotating (store intervals if you want to clear later)
+const adTimers = [];
+adTimers.push(rotateAdSection('ad-top', adSets.top, 18000));
+adTimers.push(rotateAdSection('ad-middle', adSets.middle, 22000));
+adTimers.push(rotateAdSection('ad-footer', adSets.footer, 20000));
+
+// ---------- Small: wire up celebrity IDs for slightly different naming (drakeAge id fixed) ----------
+// note: in the DOM, earlier we used 'drakeAge' vs 'drakeAge' - ensure mapping exists:
+(function ensureCelebDOMIds() {
+// If there is mismatch between JS IDs and DOM IDs, fallback mapping is handled by already matched IDs.
+// No op here; placeholder for future adjustments.
+})();
+
+// Accessibility / UX: enable dragging on carousel (native)
+
+</script>
+
+<!-- Optional small CSS for ad fade (kept at bottom so present) -->
+<style>
+.ad-hidden { opacity: 0; }
+.ad-fade { transition: opacity .45s ease; opacity: 1; }
+</style>
+</body>
+</html>
